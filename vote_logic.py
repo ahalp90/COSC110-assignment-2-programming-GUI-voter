@@ -93,8 +93,13 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
     quantity_of_candidates = len(ln1_candidates)
     # A list to store all the final cleaned votes, to avoid reiteration at dictionary processing.
     meta_cleaned_votes_list = []
-    for line in lines_from_second: # Iterate through all vote lines (NB header was ln1).
+    # Iterate through all vote lines (NB header was ln1).
+    # enumerate() to return index position for user to identify erroneous line in file.
+    for index_pos, line in enumerate(lines_from_second):
         line_ints_list = [] # Create a local list to store the cleaned vote output of each line.
+        # Use for error returns. Gives the line number in a format that's intuitive to users;
+        # Adds 2 to account for starting from the second line of the file and that [0] is first iteration.
+        user_friendly_line_pos = index_pos + 2
 
         # Local list stores line votes as list stripped of semicolons.
         # Necessary intermediate to verify if there were incorrectly placed semicolons.
@@ -108,7 +113,8 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
             try:
                 line_ints_list.append(int(i))
             except ValueError:
-                raise ValueError("A vote line contains either: (1) non-digit characters, "
+                raise ValueError(f"An error occured at line {user_friendly_line_pos} of your voting file. "
+                                 "This vote line contains either: (1) non-digit characters, "
                                     "(2) one or more votes contained >1 semicolons separating them, "
                                     "(3) a leading or trailing semicolon, or (4) an empty line.")
 
@@ -116,12 +122,14 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
         # Check that each vote line's number of votes matches the number of candidates from the header.
         if len(line_ints_list) != quantity_of_candidates:
             raise ValueError("The number of candidates in your header line does not match "
-                             "the votes in at least one vote line.")
+                             "the votes in at least one vote line."
+                             f"This error first occured in line {user_friendly_line_pos} of your voting file.")
         
         # Check that all candidates from header are represented as an index position within each vote.
         for candidate_number in range (1, quantity_of_candidates + 1):
             if candidate_number not in line_ints_list:
-                raise ValueError("At least one vote does not represent all candidates from your header line.")
+                raise ValueError("At least one vote does not represent all candidates from your header line. "
+                                 f"This error first occured in line {user_friendly_line_pos} of your voting file.")
         
         # Add cleaned vote list to a vote list and return this so as not to reiterate at dictionary construction.
         meta_cleaned_votes_list.append(line_ints_list)
@@ -170,8 +178,8 @@ while True:
     except PermissionError:
         print(f"Error: You don't have permission to access the file {filename}.\n"
                 f"Please try again.")
-    except Exception as e: # General error catcher
-        print(f" An unexpected error occured. Please try again.\n"
+    except Exception as e: # General error catcher for unforeseen circumstances.
+        print(f"An unexpected error occured. Please try again.\n"
                 f"Error: {type(e).__name__}. Error details: {e}.")
         
 
