@@ -178,7 +178,8 @@ while True:
     except PermissionError:
         print(f"Error: You don't have permission to access the file {filename}.\n"
                 f"Please try again.")
-    except Exception as e: # General error catcher for unforeseen circumstances.
+    # General error catcher for unforeseen circumstances and raised errors from child functions.
+    except Exception as e:
         print(f"An unexpected error occured. Please try again.\n"
                 f"Error: {type(e).__name__}. Error details: {e}.")
         
