@@ -116,7 +116,8 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
             print("Error: Empty vote line in input file.")
             return False
         
-        line_digits_list = [] # Create a local list to store each line's digits.
+        line_votes_list = [] # Create a local list to store each line's clean votes.
+        line_semicolon_count = 0 # Create a local list to store each line's semicolon count.
         
         # Check there's no excess leading/trailing semicolon.
         if line([0] or [-1]) == (";"):
@@ -130,16 +131,23 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
                 print("Error: Characters are not ; or digits.")
                 return False # Exit and return false at the first incorrect character.
             
-            # If a high probability of erroneous votes is expected with digits outside the candidate range,
-            # then it might be more efficient to perform another error check here.
-            # Could check that all vote numbers correspond to a valid candidate place.
-            # <if not 1<= char <= quantity_of_candidates:>
-
-        # Local parent list strips semicolons and takes each vote as a list place.
-        line_digits_list = line.split(";")
-        print("Appending digits to list.")
-
+        # Local parent lists take strips semicolons and takes each vote as a list place.
+        for char in line:
+            try:
+                if (";"):
+                    line_semicolon_count += 1
+                else :
+                    char = char(int)
+                    line_votes_list.append(char)
+            except:
+                print("A vote line contains a non-allowed character (not semicolon or digit).")
+        
+        if len(line_votes_list) != line_semicolon_count +1
+            print("Your line contai")
+            return False
         for i in line_digits_list:
+            try:
+                
             if i == "":
                 print("Error: One or more votes contained >1 semicolons separating them.")
                 return False
