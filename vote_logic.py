@@ -69,25 +69,22 @@ def valid_first_line (ln1):
         print("Error: Empty candidate line in input file.")
         return False
     
-    # Check that semicolons appropriately separate candidates
-    # Check that there are no leading/trailing semicolons
-    for char in ln1:
-        if char([0] or [-1]) == (";"):
-            print("Error: Your candidate list contains an excess semicolon at its start or finish.")
-            return False
     # Create a candidate list without semicolons.
     ln1_candidates = ln1.split(";")
-    # Check for excess semicolons between candidate places, 
-    # as split at ";;" returns an empty string at the index position ("").
+    
+    # Check for excess semicolons, either as leading/trailing figures in the line or 
+    # between candidate places. 
+    # split(";") returns "" if there ";" in a string if there are multiple ";" 
+    # or before/after a leading/trailing ";".
     for i in ln1_candidates:
         if i == (""):
-            print("Error: One or more candidate places contained >1 semicolons separating them.")
+            print("Error: Your list contains either a leading/trailing semicolon or "
+                  "one or more candidate places contain >1 semicolons separating them.")
             return False
-    
-    # Check for leading/trailing whitespace between candidate names and semicolons.
-    # Assumes that a candidate name that starts/ends with a whitespace would be invalid.
-    for i in ln1_candidates:
-        if i([0] or [-1]) == (" "):
+            # Check for leading/trailing whitespace between candidate names and semicolons.
+            # Assumes that a candidate name that starts/ends with a whitespace would be invalid.
+            # NSW legislation refuses name characters without phonetic significance.
+        elif i[0] or i[-1] == (" "):
             print("Error: One more more candidate names begins/ends with whitespace. "
                   "This is against formatting conventions. Candidate names should only be "
                   "separated by a semicolon.")
@@ -111,6 +108,7 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
         line_ints_list = [] # Create a local list to store the cleaned vote output of each line.
 
         # Local list stores line votes as list stripped of semicolons.
+        # Necessary intermediate to verify if there were incorrectly placed semicolons.
         line_without_semicolons_list = line.split(";")
         print("Removing semicolons from vote line.")
 
@@ -171,6 +169,3 @@ for candidate in ln1_candidates:
 
 check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
 print(candidate_votes_dict)
-
-# fix check for numbers > candidate_quantity
-# 
