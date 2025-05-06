@@ -20,7 +20,6 @@
 import os
 import tkinter as tk
 from tkinter import ttk
-# candidate_votes_dict = {}
 
 # List txt files in the directory.
 def open_folder():
@@ -42,21 +41,19 @@ def load_file(filename):
             ln1 = f.readline().strip() # Read first line. Remove invisible chars like \n.
             # Return all voting lines. Strip invisible chars. Readlines starts at point readline() stopped.
             lines_from_second = [line.strip() for line in f.readlines()]
-            # print(ln1, lines_from_second) # Debug helper
-            return ln1, lines_from_second
-    except FileNotFoundError as e:
-        print(f"Error: {type(e).__name__}. {e}.\n"
-                f"The file could not be found. Please try again.")
-        return None, None
-    except PermissionError as e:
-        print(f"Error: {type(e).__name__}. {e}.\n"
-                f"You don't have permission to access this file.\n"
-                f"Please try again.")
-        return None, None
-    except Exception as e: # General error catcher
-        print(f"Error: {type(e).__name__}. Error details: {e}")
-        return None, None
+        
+        ln1_candidates = valid_first_line(ln1)
+
+        meta_cleaned_votes_list = check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second)
+        
+        sorted_borda_dict = calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
+        
+        return sorted_borda_dict
     
+    # Call here the raised ValueError exceptions originating within the try loop's called functions.
+    except ValueError as e:
+        raise e
+
 
 # Assumes that the only valid semi-colon placement in candidate listing is one semi-colon between candidates,
 # and that trailing semicolons are never placed after the final candidate.
@@ -67,8 +64,7 @@ def valid_first_line (ln1):
     # However, it's more efficient to catch a bad file at the first likely error-point, 
     # and this is a simple check.
     if len(ln1) == 0:
-        print("Error: Empty candidate line in input file.")
-        return None
+        raise ValueError("Empty candidate line in input file.")
     
     # Create a candidate list without semicolons.
     ln1_candidates = ln1.split(";")
@@ -77,14 +73,11 @@ def valid_first_line (ln1):
     # between candidate places. 
     # split(";") returns "" if there ";" in a string if there are multiple ";" 
     # or before/after a leading/trailing ";".
-    for i in ln1_candidates:
-        if i == (""):
-            print("Error: Your list contains either a leading/trailing semicolon or "
-                  "one or more candidate places contain >1 semicolons separating them.")
-            return None
+    if "" in ln1_candidates:
+        raise ValueError("Candidate line contains leading/trailing semicolon "
+                         "or multiple semicolons between candidates.")
     
-    print("Your candidate line is appropriately formatted.")
-    return True, ln1_candidates
+    return ln1_candidates
 
 # Check votes line-by-line for compliance with conditions.
 # Checks are iterative (character/line-based) to efficiently stop at the first erroneous entry.
@@ -94,7 +87,7 @@ def valid_first_line (ln1):
 # (3) votes contain no excess semicolons between voting digits,
 # (4) vote lines have the same number of votes as candidates in the header, and 
 # (5) vote lines contain numbers representing all candidates.
-def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second):
+def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
     # Create a local variable to avoid recalculating at each iteration.
     quantity_of_candidates = len(ln1_candidates)
     # A list to store all the final cleaned votes, to avoid reiteration at dictionary processing.
@@ -113,34 +106,25 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
         for i in line_without_semicolons_list:
             try:
                 line_ints_list.append(int(i))
-            except:
-                print(f"Caught an error: {type.__name__}") # rewrite to include catching other errors.
-                print("Error: A vote line likely contains either: (1) non-digit characters, (2) or "
-                      "one or more votes contained >1 semicolons separating them."
-                      "(3) a leading or trailing semicolon, or (4) an empty line.")
-                return None
+            except ValueError:
+                raise ValueError("A vote line contains either: (1) non-digit characters, "
+                                    "(2) one or more votes contained >1 semicolons separating them, "
+                                    "(3) a leading or trailing semicolon, or (4) an empty line.")
+
 
         # Check that each vote line's number of votes matches the number of candidates from the header.
         if len(line_ints_list) != quantity_of_candidates:
-            print("Error: The number of candidates in your header line does not match "
-                  "the votes in at least one vote line.")
-            return None
+            raise ValueError("The number of candidates in your header line does not match "
+                             "the votes in at least one vote line.")
         
         # Check that all candidates from header are represented as an index position within each vote.
         for candidate_number in range (1, quantity_of_candidates + 1):
             if candidate_number not in line_ints_list:
-                print("Error: At least one vote does not represent all candidates from your header line.")
-                return None # Exit and return None at the first candidate number not represented.
+                raise ValueError("At least one vote does not represent all candidates from your header line.")
         
-        # Add cleaned vote list to global vote list, so as not to reiterate at dictionary construction.
+        # Add cleaned vote list to a vote list and return this so as not to reiterate at dictionary construction.
         meta_cleaned_votes_list.append(line_ints_list)
-
-        # # Add votes to dictionary; according to instructions this should be a return value of load_file??
-        # # Adding votes here is inefficient in the case of an invalid file discovered >1 line in,
-        # # but it's more efficient than reiterating in the case of a valid file.
-        # for key, vote in zip(candidate_votes_dict.keys(), line_ints_list):
-        #     candidate_votes_dict[key] += vote
-       
+      
     print("Your votes are validly formatted and all candidates are represented.")
     return meta_cleaned_votes_list
 
@@ -152,39 +136,41 @@ def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
         for voteset in meta_cleaned_votes_list:
             for ranking, candidate in zip(voteset, final_tally.keys()):
                 final_tally[candidate] += n - ranking
-        print(f"{final_tally}")
-    except:
-        print("Error: An error occured when Borda tallying the final dictionary points.")
-        return None
-    print(f"{final_tally}")
+    # Handle unanticipated calculation errors when tallying dictionary points, 
+    # but pointing to the specific step in the code.
+    except Exception as e:
+        raise ValueError(f"An error occured when Borda tallying the final dictionary points: {e}")
 
     try:
         sorted_borda_dict = dict(sorted(final_tally.items(), key = lambda item: (-item[1], item[0])))
-        print(f"{sorted_borda_dict}")
         return sorted_borda_dict
-    except:
-        print("Error: An error occured when applying the final sort to the candidate points dictionary.")
-        return None
+    # Handle unanticipated computation errors when sorting the dictionary, 
+    # but pointing to the specific step in the code.
+    except Exception as e:
+        raise ValueError(f"An error occured when applying the final sort "
+                         "to the candidate points dictionary: {e}")
     
-
+# Function to print sorted and tallied borda count dictionary.
+def print_sorted_results(sorted_borda_dict):
+    print(f"{sorted_borda_dict}")
 
 # Run code
 while True:
     open_folder()
     filename = get_filename() # Executable line here to store filename
-    ln1, lines_from_second = load_file(filename) # Executable line to store ln1 and lines_from_second values and unpack return tuple.
-    if ln1 and lines_from_second != (None, None):
-        print(f"Successfully loaded data from {filename}")
+    try:
+        sorted_borda_dict = load_file(filename)
+        print(f"Successfully loaded file from {filename}")
+        print_sorted_results(sorted_borda_dict)
         break
-    print("Please try entering the filename again.")
-# Check candidate line for validity.
-# Get list of candidates stripped of semicolons.
-# Throw away the boolean part of the valid_first_line(ln1) return.
-# header_validation_result = valid_first_line(ln1)
-_, ln1_candidates = valid_first_line(ln1)
-if ln1_candidates:
-    votes_validation_result = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
-if votes_validation_result:
-    meta_cleaned_votes_list = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
-if meta_cleaned_votes_list:
-    calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
+    except FileNotFoundError:
+        print(f"The file {filename} could not be found.\n"
+                f"Please try again.")
+    except PermissionError:
+        print(f"Error: You don't have permission to access the file {filename}.\n"
+                f"Please try again.")
+    except Exception as e: # General error catcher
+        print(f" An unexpected error occured. Please try again.\n"
+                f"Error: {type(e).__name__}. Error details: {e}.")
+        
+
