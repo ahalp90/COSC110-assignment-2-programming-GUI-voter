@@ -108,56 +108,39 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
     # Create a local variable to avoid recalculating at each iteration.
     quantity_of_candidates = len(ln1_candidates)
     for line in lines_from_second: # Iterate through all vote lines (NB header was ln1).
-        # Check that the vote line is not empty.
-        # This is technically redundant due to the later check that the number of vote positions == the number of candidates.
-        # However, it's more efficient to catch a bad file at the first likely error-point, 
-        # and this is a simple check.
-        if len(line) == 0:
-            print("Error: Empty vote line in input file.")
-            return False
-        
-        line_digits_list = [] # Create a local list to store each line's digits.
-        
-        # Check there's no excess leading/trailing semicolon.
-        if line([0] or [-1]) == (";"):
-            print("Error: A vote line contains an excess semicolon at its start or finish.")
-            return False
-        for char in line: # Check each character individually.
-            # Return an error if a character is not a semicolon or a digit.
-            # TODO: Redundant if i'm trying to convert to int type
-            # DELETE
-            if not (char == ";" or char.isdigit()):
-                print("Error: Characters are not ; or digits.")
-                return False # Exit and return false at the first incorrect character.
-            
-            # If a high probability of erroneous votes is expected with digits outside the candidate range,
-            # then it might be more efficient to perform another error check here.
-            # Could check that all vote numbers correspond to a valid candidate place.
-            # <if not 1<= char <= quantity_of_candidates:>
+        line_ints_list = [] # Create a local list to store the cleaned vote output of each line.
 
-        # Local parent list strips semicolons and takes each vote as a list place.
-        line_digits_list = line.split(";")
-        print("Appending digits to list.")
+        # Local list stores line votes as list stripped of semicolons.
+        line_without_semicolons_list = line.split(";")
+        print("Removing semicolons from vote line.")
 
-        for i in line_digits_list:
-            if i == "":
-                print("Error: One or more votes contained >1 semicolons separating them.")
+        # Check that vote strings contain only digits or semicolons.
+        # Implicitly includes check for >1 semicolon between votes and leading/trailing semicolons
+        # ("" in stripped list).
+        for i in line_without_semicolons_list:
+            try:
+                line_ints_list.append(int(i))
+            except:
+                print(f"Caught an error: {type.__name__}") # rewrite to include catching other errors.
+                print("Error: A vote line likely contains either: (1) non-digit characters, (2) or "
+                      "one or more votes contained >1 semicolons separating them."
+                      "(3) a leading or trailing semicolon, or (4) an empty line.")
                 return False
 
         # Check that each vote line's number of votes matches the number of candidates from the header.
-        if len(line_digits_list) != quantity_of_candidates:
+        if len(line_ints_list) != quantity_of_candidates:
             return False
         
         # Check that all candidates from header are represented as an index position within each vote.
         for candidate_number in range (1, quantity_of_candidates + 1):
-            if candidate_number not in line_digits_list:
+            if candidate_number not in line_ints_list:
                 print("The vote numbers don't line up with the number of candidates.")
                 return False # Exit and return false at the first candidate number not represented.
         
         # Add votes to dictionary; according to instructions this should be a return value of load_file??
         # Adding votes here is inefficient in the case of an invalid file discovered >1 line in,
         # but it's more efficient than reiterating in the case of a valid file.
-        for key, vote in zip(candidate_votes_dict.keys(), line_digits_list):
+        for key, vote in zip(candidate_votes_dict.keys(), line_ints_list):
             candidate_votes_dict[key] += vote
        
     print("Your votes are validly formatted and all candidates are represented.")
