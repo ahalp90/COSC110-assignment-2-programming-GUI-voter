@@ -60,63 +60,112 @@ def load_file(filename):
 # Assumes that the only valid semi-colon placement in candidate listing is one semi-colon between candidates,
 # and that trailing semicolons are never placed after the final candidate.
 # Also checks that there is at least 1 candidate.
-def valid_first_line (ln1, quantity_of_candidates):
-    semicolons_in_ln1 = ln1.count(";")
-    if quantity_of_candidates == 0:
-        print("Error: No candidates in input file.")
+def valid_first_line (ln1):
+    # Check that the candidate line is not empty.
+    # This is technically redundant due to the later <if i == ("")> check.
+    # However, it's more efficient to catch a bad file at the first likely error-point, 
+    # and this is a simple check.
+    if len(ln1) == 0:
+        print("Error: Empty candidate line in input file.")
         return False
-    # Return an error where there's 
-    elif semicolons_in_ln1 >= quantity_of_candidates:
-        print("Error: Candidates not appropriately separated by semicolons in input file.")
-        return False
-    else:
-        print("Your candidate line is appropriately formatted.")
-        return True
+    
+    # Check that semicolons appropriately separate candidates
+    # Check that there are no leading/trailing semicolons
+    for char in ln1:
+        if char([0] or [-1]) == (";"):
+            print("Error: Your candidate list contains an excess semicolon at its start or finish.")
+            return False
+    # Create a candidate list without semicolons.
+    ln1_candidates = ln1.split(";")
+    # Check for excess semicolons between candidate places, 
+    # as split at ";;" returns an empty string at the index position ("").
+    for i in ln1_candidates:
+        if i == (""):
+            print("Error: One or more candidate places contained >1 semicolons separating them.")
+            return False
+    
+    # Check for leading/trailing whitespace between candidate names and semicolons.
+    # Assumes that a candidate name that starts/ends with a whitespace would be invalid.
+    for i in ln1_candidates:
+        if i([0] or [-1]) == (" "):
+            print("Error: One more more candidate names begins/ends with whitespace. "
+                  "This is against formatting conventions. Candidate names should only be "
+                  "separated by a semicolon.")
+            return False
+    
+    print("Your candidate line is appropriately formatted.")
+    return True, ln1_candidates
 
-# Check that (1) all vote lines have digits and semicolons, and (2) contain numbers representing all candidates.
-# Does not verify that all vote numbers are distinct within a line. 
-# That would require a cross-reference with a set/frozen set
-def check_votes_validity_and_add_to_dictionary(lines_from_second, quantity_of_candidates):
-    for line in lines_from_second: # Check all lines individually from second.
+# Check votes line-by-line for compliance with conditions.
+# Checks are iterative (character/line-based) to efficiently stop at the first erroneous entry.
+# Check that: 
+# (1) Votes don't contain an excess leading/trailing semicolon,
+# (2) all vote lines have only digits and semicolons, 
+# (3) votes contain no excess semicolons between voting digits,
+# (4) vote lines have the same number of votes as candidates in the header, and 
+# (5) vote lines contain numbers representing all candidates.
+def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second):
+    # Create a local variable to avoid recalculating at each iteration.
+    quantity_of_candidates = len(ln1_candidates)
+    for line in lines_from_second: # Iterate through all vote lines (NB header was ln1).
+        # Check that the vote line is not empty.
+        # This is technically redundant due to the later check that the number of vote positions == the number of candidates.
+        # However, it's more efficient to catch a bad file at the first likely error-point, 
+        # and this is a simple check.
+        if len(line) == 0:
+            print("Error: Empty vote line in input file.")
+            return False
+        
         line_digits_list = [] # Create a local list to store each line's digits.
+        
+        # Check there's no excess leading/trailing semicolon.
+        if line([0] or [-1]) == (";"):
+            print("Error: A vote line contains an excess semicolon at its start or finish.")
+            return False
         for char in line: # Check each character individually.
-            # This could be reframed as a positive <if char == ;: continue> statement,
-            # removing the duplicate isdigit() check.
-            # However, this would make error-identification less informative.
+            # Return an error if a character is not a semicolon or a digit.
+            # TODO: Redundant if i'm trying to convert to int type
+            # DELETE
             if not (char == ";" or char.isdigit()):
                 print("Error: Characters are not ; or digits.")
                 return False # Exit and return false at the first incorrect character.
-            elif char.isdigit():
-                char = int(char)
-                # Check that all vote numbers correspond to a valid candidate place.
-                if not 1<= char <= quantity_of_candidates:
-                    print("Error: A vote falls outside the candidate range.")
-                    return False # Exit and return false at the first incorrect character.
-                # Append valid vote numbers, stripped of semicolons, to a local parent list.
-                else:
-                    line_digits_list.append(char)
-                    print("Appending digits to list.")
+            
+            # If a high probability of erroneous votes is expected with digits outside the candidate range,
+            # then it might be more efficient to perform another error check here.
+            # Could check that all vote numbers correspond to a valid candidate place.
+            # <if not 1<= char <= quantity_of_candidates:>
+
+        # Local parent list strips semicolons and takes each vote as a list place.
+        line_digits_list = line.split(";")
+        print("Appending digits to list.")
+
+        for i in line_digits_list:
+            if i == "":
+                print("Error: One or more votes contained >1 semicolons separating them.")
+                return False
+
+        # Check that each vote line's number of votes matches the number of candidates from the header.
+        if len(line_digits_list) != quantity_of_candidates:
+            return False
+        
         # Check that all candidates from header are represented as an index position within each vote.
-        # Perform the check line-by-line to stop at the first indicator of an invalid file.
         for candidate_number in range (1, quantity_of_candidates + 1):
             if candidate_number not in line_digits_list:
                 print("The vote numbers don't line up with the number of candidates.")
                 return False # Exit and return false at the first candidate number not represented.
+        
         # Add votes to dictionary; according to instructions this should be a return value of load_file??
         # Adding votes here is inefficient in the case of an invalid file discovered >1 line in,
         # but it's more efficient than reiterating in the case of a valid file.
         for key, vote in zip(candidate_votes_dict.keys(), line_digits_list):
             candidate_votes_dict[key] += vote
+       
     print("Your votes are validly formatted and all candidates are represented.")
     return True
 
-def results_sort():
+def results_sort_and_borda_count():
     pass
-
-class GUI:
-    pass
-
-
+    # Borda count
 
 
 # Run code
@@ -128,15 +177,16 @@ while True:
         print(f"Successfully loaded data from {filename}")
         break
     print("Please try entering the filename again.")
-# Get list and quantity of candidates; could this be better moved into a precedent function?
-candidate_list = list(ln1.split(";")) # Get list of candidates - name characters only.
-quantity_of_candidates = len(candidate_list) # Store variable to avoid repeated operation
+# Check candidate line for validity.
+# Get list of candidates stripped of semicolons.
+# Throw away the boolean part of the valid_first_line(ln1) return.
+_, ln1_candidates = valid_first_line(ln1)
+
 # Populate dictionary with candidate keys in indexed order.
-for candidate in candidate_list:
+for candidate in ln1_candidates:
     candidate_votes_dict[candidate] = 0
 
-valid_first_line(ln1, quantity_of_candidates) # change debug print later
-check_votes_validity_and_add_to_dictionary(lines_from_second, quantity_of_candidates)
+check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
 print(candidate_votes_dict)
 
 # fix check for numbers > candidate_quantity

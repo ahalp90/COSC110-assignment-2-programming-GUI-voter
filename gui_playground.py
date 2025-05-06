@@ -77,3 +77,5 @@ def open_file_dialog():
 button_file_finder.config(command=open_file_dialog)
 
 root.mainloop()
+
+# https://tkdocs.com/tutorial/widgets.html
