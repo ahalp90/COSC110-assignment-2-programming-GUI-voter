@@ -17,7 +17,6 @@
 #                 print(f"{root}/{f}")
 
 
-import copy # Used for dictionary deep copy
 import os
 import tkinter as tk
 from tkinter import ttk
@@ -142,7 +141,7 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
         #     candidate_votes_dict[key] += vote
        
     print("Your votes are validly formatted and all candidates are represented.")
-    return True, meta_cleaned_votes_list
+    return meta_cleaned_votes_list
 
 def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
     n = len(ln1_candidates)
@@ -173,24 +172,18 @@ while True:
     open_folder()
     filename = get_filename() # Executable line here to store filename
     ln1, lines_from_second = load_file(filename) # Executable line to store ln1 and lines_from_second values and unpack return tuple.
-    if ln1 and lines_from_second is not (None, None):
+    if ln1 and lines_from_second != (None, None):
         print(f"Successfully loaded data from {filename}")
         break
     print("Please try entering the filename again.")
 # Check candidate line for validity.
 # Get list of candidates stripped of semicolons.
 # Throw away the boolean part of the valid_first_line(ln1) return.
-header_validation_result = valid_first_line(ln1)
-if header_validation_result == False:
-    print("Error: Exiting program due to an invalid header line in the input file.")
-else:
-    _, ln1_candidates = valid_first_line(ln1)
-    # Populate dictionary with candidate keys in indexed order.
-    for candidate in ln1_candidates:
-        candidate_votes_dict[candidate] = 0
-
+# header_validation_result = valid_first_line(ln1)
+_, ln1_candidates = valid_first_line(ln1)
+if ln1_candidates:
     votes_validation_result = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
-    if votes_validation_result == False:
-        print("Error: Exiting program due to an invalidity in the vote lines of the input file.")
-    else:
-        print(candidate_votes_dict)
+if votes_validation_result:
+    _, meta_cleaned_votes_list = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
+if meta_cleaned_votes_list:
+    calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
