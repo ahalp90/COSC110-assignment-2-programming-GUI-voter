@@ -17,10 +17,11 @@
 #                 print(f"{root}/{f}")
 
 
+import copy # Used for dictionary deep copy
 import os
 import tkinter as tk
 from tkinter import ttk
-candidate_votes_dict = {}
+# candidate_votes_dict = {}
 
 # List txt files in the directory.
 def open_folder():
@@ -81,14 +82,6 @@ def valid_first_line (ln1):
             print("Error: Your list contains either a leading/trailing semicolon or "
                   "one or more candidate places contain >1 semicolons separating them.")
             return False
-            # Check for leading/trailing whitespace between candidate names and semicolons.
-            # Assumes that a candidate name that starts/ends with a whitespace would be invalid.
-            # NSW legislation refuses name characters without phonetic significance.
-        elif i[0] or i[-1] == (" "):
-            print("Error: One more more candidate names begins/ends with whitespace. "
-                  "This is against formatting conventions. Candidate names should only be "
-                  "separated by a semicolon.")
-            return False
     
     print("Your candidate line is appropriately formatted.")
     return True, ln1_candidates
@@ -104,6 +97,8 @@ def valid_first_line (ln1):
 def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second):
     # Create a local variable to avoid recalculating at each iteration.
     quantity_of_candidates = len(ln1_candidates)
+    # A list to store all the final cleaned votes, to avoid reiteration at dictionary processing.
+    meta_cleaned_votes_list = []
     for line in lines_from_second: # Iterate through all vote lines (NB header was ln1).
         line_ints_list = [] # Create a local list to store the cleaned vote output of each line.
 
@@ -127,26 +122,50 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
 
         # Check that each vote line's number of votes matches the number of candidates from the header.
         if len(line_ints_list) != quantity_of_candidates:
+            print("Error: The number of candidates in your header line does not match "
+                  "the votes in at least one vote line.")
             return False
         
         # Check that all candidates from header are represented as an index position within each vote.
         for candidate_number in range (1, quantity_of_candidates + 1):
             if candidate_number not in line_ints_list:
-                print("The vote numbers don't line up with the number of candidates.")
+                print("Error: At least one vote does not represent all candidates from your header line.")
                 return False # Exit and return false at the first candidate number not represented.
         
-        # Add votes to dictionary; according to instructions this should be a return value of load_file??
-        # Adding votes here is inefficient in the case of an invalid file discovered >1 line in,
-        # but it's more efficient than reiterating in the case of a valid file.
-        for key, vote in zip(candidate_votes_dict.keys(), line_ints_list):
-            candidate_votes_dict[key] += vote
+        # Add cleaned vote list to global vote list, so as not to reiterate at dictionary construction.
+        meta_cleaned_votes_list.append(line_ints_list)
+
+        # # Add votes to dictionary; according to instructions this should be a return value of load_file??
+        # # Adding votes here is inefficient in the case of an invalid file discovered >1 line in,
+        # # but it's more efficient than reiterating in the case of a valid file.
+        # for key, vote in zip(candidate_votes_dict.keys(), line_ints_list):
+        #     candidate_votes_dict[key] += vote
        
     print("Your votes are validly formatted and all candidates are represented.")
-    return True
+    return True, meta_cleaned_votes_list
 
-def results_sort_and_borda_count():
-    pass
-    # Borda count
+def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
+    n = len(ln1_candidates)
+    final_tally = {candidate: 0 for candidate in ln1_candidates}
+
+    try:
+        for voteset in meta_cleaned_votes_list:
+            for ranking, candidate in zip(voteset, final_tally.keys()):
+                final_tally[candidate] += n - ranking
+        print(f"{final_tally}")
+    except:
+        print("Error: An error occured when Borda tallying the final dictionary points.")
+        return False
+    print(f"{final_tally}")
+
+    try:
+        sorted_borda_dict = dict(sorted(final_tally.items(), key = lambda item: (-item[1], item[0])))
+        print(f"{sorted_borda_dict}")
+        return sorted_borda_dict
+    except:
+        print("Error: An error occured when applying the final sort to the candidate points dictionary.")
+        return False
+    
 
 
 # Run code
@@ -161,11 +180,17 @@ while True:
 # Check candidate line for validity.
 # Get list of candidates stripped of semicolons.
 # Throw away the boolean part of the valid_first_line(ln1) return.
-_, ln1_candidates = valid_first_line(ln1)
+header_validation_result = valid_first_line(ln1)
+if header_validation_result == False:
+    print("Error: Exiting program due to an invalid header line in the input file.")
+else:
+    _, ln1_candidates = valid_first_line(ln1)
+    # Populate dictionary with candidate keys in indexed order.
+    for candidate in ln1_candidates:
+        candidate_votes_dict[candidate] = 0
 
-# Populate dictionary with candidate keys in indexed order.
-for candidate in ln1_candidates:
-    candidate_votes_dict[candidate] = 0
-
-check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
-print(candidate_votes_dict)
+    votes_validation_result = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
+    if votes_validation_result == False:
+        print("Error: Exiting program due to an invalidity in the vote lines of the input file.")
+    else:
+        print(candidate_votes_dict)
