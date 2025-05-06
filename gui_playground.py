@@ -1,3 +1,4 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from tkinter import filedialog
@@ -23,7 +24,7 @@ label_instructions = ttk.Label(frame_loading,
                                     "press the 'Load file' button.")
 button_file_finder = ttk.Button(frame_loading, 
                                 text="Find my file")
-combobox_files_in_current_dir = ttk.Combobox(frame_loading)
+combobox_files_in_current_dir = ttk.Combobox(frame_loading, state='readonly')
 button_file_load = ttk.Button(frame_loading, 
                               text="Load file")
 label_file_selected = ttk.Label(frame_loading, 
@@ -72,10 +73,45 @@ def open_file_dialog():
     if file_path:
         label_file_selected.config(text=f"File selected: {file_path}")
 
+def get_txt_files_in_cwd():
+    txt_files_cwd = []
+    try:
+        cwd = os.getcwd()
+        for item_name in os.listdir(cwd):
+            if item_name.endswith(".txt"):
+                full_path = os.path.join(cwd, item_name)
+                if os.path.isfile(full_path):
+                    txt_files_cwd.append(item_name)
+    except FileNotFoundError:
+        print(f"The file {item_name} could not be found.\n"
+                f"Please try again.")
+    except PermissionError:
+        print(f"Error: You don't have permission to access the file {item_name}.\n"
+                f"Please try again.")
+    except Exception as e: # General error catcher
+        print(f" An unexpected error occured. Please try again.\n"
+                f"Error: {type(e).__name__}. Error details: {e}.")
+    
+    return txt_files_cwd
+
+def populate_combobox(txt_files_cwd):
+    combobox_files_in_current_dir['values'] = txt_files_cwd
+    if txt_files_cwd:
+        combobox_files_in_current_dir.set("Click here for .txt files in the program directory.")
+    else:
+        combobox_files_in_current_dir.set("No .txt files found in this directory.")
+
 # Widget bindings
 # Bindings for <frame_loading> widgets
 button_file_finder.config(command=open_file_dialog)
+# button_file_load.config(command=load_file(filename))
 
+
+txt_files_cwd = get_txt_files_in_cwd()
+populate_combobox(txt_files_cwd)
 root.mainloop()
+
+
+
 
 # https://tkdocs.com/tutorial/widgets.html

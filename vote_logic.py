@@ -20,6 +20,7 @@
 import os
 import tkinter as tk
 from tkinter import ttk
+from tkinter import filedialog
 
 # List txt files in the directory.
 def open_folder():
