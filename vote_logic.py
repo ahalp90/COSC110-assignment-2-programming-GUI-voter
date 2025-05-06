@@ -56,6 +56,7 @@ def load_file(filename):
     except Exception as e: # General error catcher
         print(f"Error: {type(e).__name__}. Error details: {e}")
         return None, None
+    
 
 # Assumes that the only valid semi-colon placement in candidate listing is one semi-colon between candidates,
 # and that trailing semicolons are never placed after the final candidate.
@@ -67,7 +68,7 @@ def valid_first_line (ln1):
     # and this is a simple check.
     if len(ln1) == 0:
         print("Error: Empty candidate line in input file.")
-        return False
+        return None
     
     # Create a candidate list without semicolons.
     ln1_candidates = ln1.split(";")
@@ -80,7 +81,7 @@ def valid_first_line (ln1):
         if i == (""):
             print("Error: Your list contains either a leading/trailing semicolon or "
                   "one or more candidate places contain >1 semicolons separating them.")
-            return False
+            return None
     
     print("Your candidate line is appropriately formatted.")
     return True, ln1_candidates
@@ -117,19 +118,19 @@ def check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second
                 print("Error: A vote line likely contains either: (1) non-digit characters, (2) or "
                       "one or more votes contained >1 semicolons separating them."
                       "(3) a leading or trailing semicolon, or (4) an empty line.")
-                return False
+                return None
 
         # Check that each vote line's number of votes matches the number of candidates from the header.
         if len(line_ints_list) != quantity_of_candidates:
             print("Error: The number of candidates in your header line does not match "
                   "the votes in at least one vote line.")
-            return False
+            return None
         
         # Check that all candidates from header are represented as an index position within each vote.
         for candidate_number in range (1, quantity_of_candidates + 1):
             if candidate_number not in line_ints_list:
                 print("Error: At least one vote does not represent all candidates from your header line.")
-                return False # Exit and return false at the first candidate number not represented.
+                return None # Exit and return None at the first candidate number not represented.
         
         # Add cleaned vote list to global vote list, so as not to reiterate at dictionary construction.
         meta_cleaned_votes_list.append(line_ints_list)
@@ -154,7 +155,7 @@ def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
         print(f"{final_tally}")
     except:
         print("Error: An error occured when Borda tallying the final dictionary points.")
-        return False
+        return None
     print(f"{final_tally}")
 
     try:
@@ -163,7 +164,7 @@ def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
         return sorted_borda_dict
     except:
         print("Error: An error occured when applying the final sort to the candidate points dictionary.")
-        return False
+        return None
     
 
 
@@ -184,6 +185,6 @@ _, ln1_candidates = valid_first_line(ln1)
 if ln1_candidates:
     votes_validation_result = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
 if votes_validation_result:
-    _, meta_cleaned_votes_list = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
+    meta_cleaned_votes_list = check_votes_validity_and_add_to_dictionary(ln1_candidates, lines_from_second)
 if meta_cleaned_votes_list:
     calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
