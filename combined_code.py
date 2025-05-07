@@ -18,9 +18,7 @@ def load_file(filename):
         
         return sorted_borda_dict
     
-    # Call here the raised ValueError exceptions originating within the try loop's called functions.
-    except ValueError as e:
-        raise e
+    # Identify and raise major likely errors to occur when accessing a file.
     except FileNotFoundError:
         raise FileNotFoundError(f"The file {filename} could not be found.\n"
             "Please try again.")
@@ -57,12 +55,18 @@ def valid_first_line (ln1):
 # Check votes line-by-line for compliance with conditions.
 # Checks are iterative (character/line-based) to efficiently stop at the first erroneous entry.
 # Check that: 
-# (1) Votes don't contain an excess leading/trailing semicolon,
-# (2) all vote lines have only digits and semicolons, 
-# (3) votes contain no excess semicolons between voting digits,
-# (4) vote lines have the same number of votes as candidates in the header, and 
-# (5) vote lines contain numbers representing all candidates.
+# (1) The file has at least one line of votes.
+# (2) All vote lines have only digits and semicolons.
+# (3) Votes don't contain an excess leading/trailing semicolon.
+# (4) Votes contain no excess semicolons between voting digits.
+# (5) Votes are not blank lines.
+# (6) vote lines have the same number of votes as candidates in the header, and 
+# (7) vote lines contain numbers representing all candidates.
 def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
+    # Catch the situation where a file has no line after the header.
+    if not lines_from_second:
+        raise ValueError("Your file contains no voting lines; only a header")
+    
     # Create a local variable to avoid recalculating at each iteration.
     quantity_of_candidates = len(ln1_candidates)
     # A list to store all the final cleaned votes, to avoid reiteration at dictionary processing.
@@ -112,23 +116,69 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
     return meta_cleaned_votes_list
 
 def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
+    """Calculate election results using the Borda Count formula and then sort them.
+
+    Create an intermediate dictionary (final_tally) of all candidates with value 0. 
+        Iterate through the passed in list of clean votes (a meta list containing 
+        each vote line as a sub-list) and the local dictionary of candidates. 
+        Derive a vote value from each index position's integer within each voteset 
+        and pair it to the correlated position of the vote_tally dictionary keys.
+        Process the votes according to the given formula and then iteratively 
+        add to the keys' values in final_tally.
+
+    For each vote, candidates receive points based on their rankings.
+        Each candidate earns (n - r) points for each ballot, where:
+        n = Total number of candidates (3 in this case)
+        r = Rank assigned by the voter
+        In this case:
+        A 1st place vote gives the candidate 2 points (3 - 1)
+        A 2nd place vote gives 1 point (3 - 2)
+        A 3rd place vote gives 0 points (3 - 3)
+    
+    Subsequently, sort the keys according to the given criteria.
+        Keys should be sorted in descending order of value, and
+        in the case of a tied value, an alphabetical sort should be applied.
+  
+    Arguments:
+        ln1_candidates (list): List of candidate names with semicolons removed.
+        meta_cleaned_votes_list (list): List containing child lists with each line
+            of votes, with semicolons removed.
+
+    Returns:
+        sorted_borda_dict dict: A dictionary mapping each candidate to their
+        total Borda Count points and sorted by descending value order and,
+        in the case of a tied value, in alphabetical order.
+
+    Raises:
+        ValueError: Unforseen run-time issues may impact dictioanry construction
+            or sorting. Raise these as ValueError messages but preserve the originating
+            error code.
+    """
+    # Local variable to avoid recalculating the number of candidates 
     n = len(ln1_candidates)
+    # Local dictionary to store candidates (keys) and their values while tallying
+    # and sorting.
     final_tally = {candidate: 0 for candidate in ln1_candidates}
 
+    # Tally votes for each candidate using the Borda algorithm.
     try:
         for voteset in meta_cleaned_votes_list:
             for ranking, candidate in zip(voteset, final_tally.keys()):
                 final_tally[candidate] += n - ranking
+    
     # Handle unanticipated calculation errors when tallying dictionary points, 
-    # but pointing to the specific step in the code.
+    # but pointing to the specific error-type.
     except Exception as e:
         raise ValueError(f"An error occured when Borda tallying the final dictionary points: {e}")
 
+    # Create and return a dictionary derived from the local vote_tally dictionary
+    # with requisite sort applied.
     try:
         sorted_borda_dict = dict(sorted(final_tally.items(), key = lambda item: (-item[1], item[0])))
         return sorted_borda_dict
+    
     # Handle unanticipated computation errors when sorting the dictionary, 
-    # but pointing to the specific step in the code.
+    # but pointing to the specific error-type.
     except Exception as e:
         raise ValueError("An error occured when applying the final sort "
                          f"to the candidate points dictionary: {e}")
