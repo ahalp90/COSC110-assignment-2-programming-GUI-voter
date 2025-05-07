@@ -25,12 +25,13 @@ from tkinter import ttk
 from tkinter import filedialog
 
 root = tk.Tk()
+root.title("Codetown Vote Counter")
 root.minsize(800,400) # Not strictly enforced in Linux.
 
 selected_file_path = tk.StringVar()
 
 frame_loading = ttk.Frame(root)
-frame_load_output = ttk.Frame(frame_loading)
+frame_load_output = ttk.Frame(root)
 
 # Header in root to avoid replication if additional frames are added down the track.
 label_header = ttk.Label(root, 
@@ -46,19 +47,21 @@ label_instructions = ttk.Label(frame_loading,
                                     "in its directory.\n\n"
                                     "Once you're satisfied with your file chosen, "
                                     "press the 'Load file' button.",
-                                    wraplength=700) # Wrap to frame minwidth minus a bit of buffer.
+                                    wraplength=700, # Wrap to frame minwidth minus a bit of buffer.
+                                    justify=tk.LEFT)
 button_file_finder = ttk.Button(frame_loading, 
                                 text="Find my file")
 button_file_load = ttk.Button(frame_loading, 
                               text="Load file")
 label_file_selected = ttk.Label(frame_loading, 
                                 text="No file currently selected", 
-                                wraplength=700) # Wrap to frame minwidth minus a bit of buffer.
+                                wraplength=700, # Wrap to frame minwidth minus a bit of buffer.
+                                anchor='w')
 
 # Text output widget for display vote count/error messages, and x/y scrollbars for it.
 text_loaded_output = tk.Text(frame_load_output, 
-                              height=5, 
-                              borderwidth=0, 
+                              height=10, 
+                              borderwidth=1, 
                               relief=tk.FLAT, 
                               bg='white', 
                               state=tk.DISABLED,
@@ -66,7 +69,10 @@ text_loaded_output = tk.Text(frame_load_output,
 
 scrollbar_x = ttk.Scrollbar(frame_load_output, orient=tk.HORIZONTAL, command=text_loaded_output.xview)
 scrollbar_y = ttk.Scrollbar(frame_load_output, orient=tk.VERTICAL, command=text_loaded_output.yview)
-                                 
+
+text_loaded_output.config(xscrollcommand=scrollbar_x.set,
+                           yscrollcommand=scrollbar_y.set)
+
 # Configure frame borders for frame_loading and frame_load_output.
 frame_loading.configure(padding=5, borderwidth=2)
 frame_load_output.configure(padding=5)
@@ -76,26 +82,28 @@ frame_load_output.configure(padding=5)
 # Grid behaviour for widgets.
 # Root widgets
 # <label_header> is in a separate grid in case of refactoring for additional frames.
-label_header.grid(column=0, row=0, columnspan=1, rowspan=1, pady=(0, 30), sticky='nsew')
+label_header.grid(column=0, row=0, pady=(10, 10), sticky='ew')
 frame_loading.grid(column=0, row=1, sticky='nsew')
-frame_load_output.grid(column=0, row=4, columnspan=5, sticky='nsew')
+frame_load_output.grid(column=0, row=2, columnspan=5, sticky='nsew')
 
 # frame_loading widgets.
 label_instructions.grid(column=0, row=0, columnspan=5, rowspan=1, pady=(0,30), sticky='nsew')
-button_file_finder.grid(column=4, row=1, columnspan=1, rowspan=1, sticky='nsew')
 label_file_selected.grid(column=0, row=2, columnspan=4, rowspan=1, pady=(10,10), sticky='nsew')
-button_file_load.grid(column=4, row=2, columnspan=1, rowspan=1, sticky='nsew')
+button_file_finder.grid(column=4, row=1, columnspan=1, rowspan=1, pady=(5,5), sticky='nsew')
+button_file_load.grid(column=4, row=2, columnspan=1, rowspan=1, pady=(5,5), sticky='nsew')
 
 # frame_load_output widgets (Text and Scrollbars).
 text_loaded_output.grid(column=0, row=0, sticky='nsew')
-scrollbar_x.grid(column=0, row=1, columnspan=5, rowspan=1, sticky='ew')
 scrollbar_y.grid(column=1, row=0, columnspan=1, rowspan=3, sticky='ns')
+scrollbar_x.grid(column=0, row=1, columnspan=5, rowspan=1, sticky='ew')
+
 
 # Frame resizing code.
 # Resize properties for <Root> widgets
 root.columnconfigure(0, weight=1) # Root needs to expand as the container for all frames.
 root.rowconfigure(0, weight=0) # Header doesn't epand.
 root.rowconfigure(1, weight=1) # Main body frame expands.
+root.rowconfigure(2, weight=1) # Output text frame expands.
 
 
 # Resize properties for <frame_loading> widgets
@@ -133,8 +141,7 @@ def open_file_dialog():
 # Widget bindings
 # Bindings for <frame_loading> widgets
 button_file_finder.config(command=open_file_dialog)
-text_loaded_output.config(xscrollcommand=scrollbar_x.set,
-                           yscrollcommand=scrollbar_y.set)
+
 # button_file_load.config(command=load_file(filename))
 
 

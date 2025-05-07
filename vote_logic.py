@@ -104,7 +104,6 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
         # Local list stores line votes as list stripped of semicolons.
         # Necessary intermediate to verify if there were incorrectly placed semicolons.
         line_without_semicolons_list = line.split(";")
-        print("Removing semicolons from vote line.")
 
         # Check that vote strings contain only digits or semicolons.
         # Implicitly includes check for >1 semicolon between votes and leading/trailing semicolons
@@ -134,7 +133,6 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
         # Add cleaned vote list to a vote list and return this so as not to reiterate at dictionary construction.
         meta_cleaned_votes_list.append(line_ints_list)
       
-    print("Your votes are validly formatted and all candidates are represented.")
     return meta_cleaned_votes_list
 
 def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
