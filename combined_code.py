@@ -49,8 +49,8 @@ def valid_first_line (ln1):
     # split(";") returns "" if there ";" in a string if there are multiple ";" 
     # or before/after a leading/trailing ";".
     if "" in ln1_candidates:
-        raise ValueError("Candidate line contains leading/trailing semicolon "
-                         "or multiple semicolons between candidates.")
+        raise ValueError("Candidate line contains (1) leading/trailing semicolon or\n"
+                         "(2)multiple semicolons between candidates.")
     
     return ln1_candidates
 
@@ -86,7 +86,7 @@ def check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second):
             try:
                 line_ints_list.append(int(i))
             except ValueError:
-                raise ValueError(f"An error occured at line {user_friendly_line_pos} of your voting file. "
+                raise ValueError(f"An error occured at line {user_friendly_line_pos} of your voting file.\n"
                                  "This vote line contains either: \n"
                                  "(1) non-digit characters, \n"
                                  "(2) one or more votes contained >1 semicolons separating them, \n"
@@ -130,8 +130,8 @@ def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
     # Handle unanticipated computation errors when sorting the dictionary, 
     # but pointing to the specific step in the code.
     except Exception as e:
-        raise ValueError(f"An error occured when applying the final sort "
-                         "to the candidate points dictionary: {e}")
+        raise ValueError("An error occured when applying the final sort "
+                         f"to the candidate points dictionary: {e}")
     
 ## GUI Logic
 root = tk.Tk()
@@ -152,8 +152,7 @@ label_header = ttk.Label(root,
 # Loading frame widgets.
 label_instructions = ttk.Label(frame_loading, 
                                text="Please select a file to load.\n\n"
-                                    "Either choose a text file from the drop-down menu "
-                                    "or click the 'Find my file' button to navigate to your file "
+                                    "Click the 'Find my file' button to navigate to your file "
                                     "in its directory.\n\n"
                                     "Once you're satisfied with your file chosen, "
                                     "press the 'Load file' button.",
@@ -257,21 +256,22 @@ def handle_load_file_click():
     
     try:
         sorted_borda_dict = load_file(filename)
-
-        if sorted_borda_dict:
-            output_message =  (f"Sucessfully loaded and processed: {os.path.basename(filename)}\n\n"
-                               "Borda Count Results of the Codetown Election\n"
-                               "Candidate: Score\n"
-                               f"{sorted_borda_dict}")
-        else:
-            output_message = ("There was an error processing your file.\n"
-                              "Please try loading another file.\n"
-                              "The exact error was:\n")
         
+        output_list = []
+        for candidate, score in sorted_borda_dict.items():
+            output_list.append(f"{candidate}: {score}")
+        
+        output_message =  (f"Sucessfully loaded and processed: {os.path.basename(filename)}\n\n"
+                            "Borda Count Results of the Codetown Election\n\n"
+                            "Candidate: Score\n\n"
+                            f"{"\n".join(output_list)}")
         display_in_output_text(output_message)
     
     except Exception as e:
-        display_in_output_text(f"Error: {type(e).__name__}. Error details: {e}")
+        display_in_output_text(f"Error: {type(e).__name__}.\n"
+                               "Error details: \n\n"
+                               f"{e}\n\n"
+                               "Please load a different file and try again.")
         
 # Widget bindings
 button_file_finder.config(command=open_file_dialog)
