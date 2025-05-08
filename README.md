@@ -131,7 +131,6 @@ the terminal, run:\
         widget with the chosen file's path.
     Only the basename--filename and filetype stripped of directory--is 
         displayed. This is for brevity and user-friendliness.
-    Clears the output text area on a new file selection attempt.
 
 ### handle_load_file_click()
     Handles the 'Load file' button click event.

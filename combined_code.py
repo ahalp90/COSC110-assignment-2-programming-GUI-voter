@@ -499,12 +499,7 @@ def open_file_dialog():
         widget with the chosen file's path.
     Only the basename--filename and filetype stripped of directory--is 
         displayed. This is for brevity and user-friendliness.
-    Clears the output text area on a new file selection attempt.
     """
-     # Clear output text each time there's an attempt to load a new file; 
-     # assumes >1 attempt, probably after loading a failed file.
-    display_in_output_text(message_text="")
-
     # Open file system dialogue, defaulting to only show <.txt> files.
     filename = filedialog.askopenfilename(title="Select a File", 
                                            filetypes=[("Text files", "*.txt"), 
