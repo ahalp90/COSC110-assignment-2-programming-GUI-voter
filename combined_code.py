@@ -340,7 +340,7 @@ def calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list):
 # Initialise the main Tkinter window.
 root = tk.Tk()
 root.title("Codetown Vote Counter")
-root.minsize(800,400) # Minimum window size; not strictly enforced in Linux.
+root.minsize(800,500) # Minimum window size; not strictly enforced in Linux.
 
 #Tkinter StringVar to hold the path of the selected file.
 #tk.StringVar() type in case of later use for direct read/write by tk objects.
