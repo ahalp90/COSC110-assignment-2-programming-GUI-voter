@@ -29,11 +29,11 @@ Prerequisites:
 * Vote files whose contents you wish to view/validate.
 * No additional external dependencies.
 
-Download the program to your local machine and run vote_gui.py.
-* In Windows, double click on vote_gui.py to run the program.
+Download the program files to your local machine and run main.py.
+* In Windows, double click on main.py to run the program.
 * In Linux, navigate to the directory in which you've placed it and, in
 the terminal, run:\
-    _python vote_gui.py_
+    _python main.py_
 
 ## Usage
 1. Run the program as described in the Installation section. The "Codetown Vote Display" GUI will appear.
@@ -54,8 +54,17 @@ the terminal, run:\
     * If any errors occur, a detailed error message will be displayed in the GUI.
         * If an error occured, you should try to load a new file.
 
-## Functions
-### load_file(filename)
+## Program Structure
+The program is organized into three modules:
+* **main.py**: Entry point for the application.
+* **vote_processor.py**: Contains the BordaVoteProcessor class with all vote processing logic.
+* **gui.py**: Contains the VoteCounterGUI class with all interface components.
+
+## Classes and Methods
+### BordaVoteProcessor (vote_processor.py)
+Handles all election data processing and validation.
+
+#### load_file(filename)
     Loads, validates and processes a vote data file.
 
     This function calls a series of child functions to achieve the following:
@@ -65,7 +74,7 @@ the terminal, run:\
     3. Validate the contents of the voting file.
     4. Produce a dictionary of counted and sorted results.
 
-### valid_first_line(ln1)
+#### valid_first_line(ln1)
     Validates the first line (candidate names) of the file loaded.
 
     Checks:
@@ -74,7 +83,7 @@ the terminal, run:\
     (3) There are no multiple semicolons between candidate names.
     (4) There is at least one candidate.
 
-### check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second)
+#### check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second)
     Validates vote lines and converts them into a list of lists of integers.
 
     Check votes line-by-line for compliance with conditions.
@@ -89,7 +98,7 @@ the terminal, run:\
         (6) Vote lines have the same number of votes as candidates in the header. 
         (7) Vote lines contain numbers representing all candidates.
 
-### calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
+#### calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
     Calculate election results using the Borda Count formula and sort them.
 
     Create an intermediate dictionary (final_tally) of all candidates with 
@@ -114,7 +123,10 @@ the terminal, run:\
         Keys should be sorted in descending order of value, and
         in the case of a tied value, an alphabetical sort should be applied.
 
-### display_in_output_text(message_text)
+### VoteCounterGUI (gui.py)
+Manages the Tkinter interface and user interactions.
+
+#### display_in_output_text(message_text)
     Updates the content of the output Text widget.
 
     Runs through the following sequence when called:
@@ -124,7 +136,7 @@ the terminal, run:\
     (3) Inserts the desired text.
     (4) Renders the widget read-only again.
 
-### open_file_dialog()
+#### open_file_dialog()
     Opens a file dialogue for the user to select an input file.
 
     Updates the 'selected_file_path' StringVar and the 'label_file_selected'
@@ -132,7 +144,7 @@ the terminal, run:\
     Only the basename--filename and filetype stripped of directory--is 
         displayed. This is for brevity and user-friendliness.
 
-### handle_load_file_click()
+#### handle_load_file_click()
     Handles the 'Load file' button click event.
 
     Retrieves the selected file's path, calls load_file(filename) to attempt to 
