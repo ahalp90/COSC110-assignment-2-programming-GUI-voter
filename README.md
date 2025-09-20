@@ -29,19 +29,11 @@ Prerequisites:
 * Vote files whose contents you wish to view/validate.
 * No additional external dependencies.
 
-<<<<<<< HEAD
 Download the program files to your local machine and run main.py.
 * In Windows, double click on main.py to run the program.
 * In Linux, navigate to the directory in which you've placed it and, in
 the terminal, run:\
     _python main.py_
-=======
-Download the program to your local machine and run vote_gui.py.
-* In Windows, double click on vote_gui.py to run the program.
-* In Linux, navigate to the directory in which you've placed it and, in
-the terminal, run:\
-    _python vote_gui.py_
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
 
 ## Usage
 1. Run the program as described in the Installation section. The "Codetown Vote Display" GUI will appear.
@@ -62,7 +54,6 @@ the terminal, run:\
     * If any errors occur, a detailed error message will be displayed in the GUI.
         * If an error occured, you should try to load a new file.
 
-<<<<<<< HEAD
 ## Program Structure
 The program is organized into three modules:
 * **main.py**: Entry point for the application.
@@ -74,10 +65,6 @@ The program is organized into three modules:
 Handles all election data processing and validation.
 
 #### load_file(filename)
-=======
-## Functions
-### load_file(filename)
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Loads, validates and processes a vote data file.
 
     This function calls a series of child functions to achieve the following:
@@ -87,11 +74,7 @@ Handles all election data processing and validation.
     3. Validate the contents of the voting file.
     4. Produce a dictionary of counted and sorted results.
 
-<<<<<<< HEAD
 #### valid_first_line(ln1)
-=======
-### valid_first_line(ln1)
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Validates the first line (candidate names) of the file loaded.
 
     Checks:
@@ -100,11 +83,7 @@ Handles all election data processing and validation.
     (3) There are no multiple semicolons between candidate names.
     (4) There is at least one candidate.
 
-<<<<<<< HEAD
 #### check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second)
-=======
-### check_votes_validity_and_export_to_list(ln1_candidates, lines_from_second)
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Validates vote lines and converts them into a list of lists of integers.
 
     Check votes line-by-line for compliance with conditions.
@@ -119,11 +98,7 @@ Handles all election data processing and validation.
         (6) Vote lines have the same number of votes as candidates in the header. 
         (7) Vote lines contain numbers representing all candidates.
 
-<<<<<<< HEAD
 #### calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
-=======
-### calculate_and_sort_borda_results(ln1_candidates, meta_cleaned_votes_list)
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Calculate election results using the Borda Count formula and sort them.
 
     Create an intermediate dictionary (final_tally) of all candidates with 
@@ -148,14 +123,10 @@ Handles all election data processing and validation.
         Keys should be sorted in descending order of value, and
         in the case of a tied value, an alphabetical sort should be applied.
 
-<<<<<<< HEAD
 ### VoteCounterGUI (gui.py)
 Manages the Tkinter interface and user interactions.
 
 #### display_in_output_text(message_text)
-=======
-### display_in_output_text(message_text)
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Updates the content of the output Text widget.
 
     Runs through the following sequence when called:
@@ -165,11 +136,7 @@ Manages the Tkinter interface and user interactions.
     (3) Inserts the desired text.
     (4) Renders the widget read-only again.
 
-<<<<<<< HEAD
 #### open_file_dialog()
-=======
-### open_file_dialog()
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Opens a file dialogue for the user to select an input file.
 
     Updates the 'selected_file_path' StringVar and the 'label_file_selected'
@@ -177,11 +144,7 @@ Manages the Tkinter interface and user interactions.
     Only the basename--filename and filetype stripped of directory--is 
         displayed. This is for brevity and user-friendliness.
 
-<<<<<<< HEAD
 #### handle_load_file_click()
-=======
-### handle_load_file_click()
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
     Handles the 'Load file' button click event.
 
     Retrieves the selected file's path, calls load_file(filename) to attempt to 
@@ -191,8 +154,4 @@ Manages the Tkinter interface and user interactions.
     Passes filename to load_file(filename). <filename> is derived here from a 
         global variable rather than being received as an argument due to its 
         role in the GUI and maintainability concerns related to the likelihood 
-<<<<<<< HEAD
         of ongoing tweaking of the GUI.
-=======
-        of ongoing tweaking of the GUI.
->>>>>>> f5eb5a7c54f3724bde8c1bee287562b84c12b11f
